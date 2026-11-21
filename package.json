@@ -8,7 +8,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test \"dist/tests/*.test.js\"",
-    "demo": "npm run build && node scripts/build-demo.mjs"
+    "demo": "npm run build && node scripts/build-demo.mjs",
+    "check:claude": "npm run build && node dist/apps/server/src/check-claude.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

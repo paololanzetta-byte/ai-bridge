@@ -10,6 +10,11 @@ Interfaccia web (React) <-> server (Node.js/TypeScript) <-> database PostgreSQL.
 - **Controllo spesa**: tetto settimanale, blocco automatico.
 - **Archivio**: esportazioni e backup su Google Drive; registro delle operazioni.
 
+## Dati (decisione del 21-11-2026)
+- **Database: SQLite in locale**, un solo file sul computer dell'utente, gratuito. Lo schema resta compatibile con PostgreSQL per una futura migrazione.
+- **Google Drive** (account Decumano): archivio e backup, non database. Copie periodiche del file SQLite, riassunti, rapporti finali e allegati, in una cartella dedicata. Nessun dato riservato di terzi.
+- **Registro della spesa settimanale**: file locale che si azzera ogni lunedì; il tetto è controllato prima di ogni chiamata.
+
 ## Cartelle
 - `apps/web`: interfaccia
 - `apps/server`: server

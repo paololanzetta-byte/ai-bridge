@@ -11,5 +11,5 @@
     "skipLibCheck": true,
     "sourceMap": false
   },
-  "include": ["packages/*/src/**/*.ts", "tests/**/*.ts", "demo/**/*.ts"]
+  "include": ["packages/*/src/**/*.ts", "apps/*/src/**/*.ts", "tests/**/*.ts", "demo/**/*.ts"]
 }
