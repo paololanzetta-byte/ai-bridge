@@ -8,3 +8,10 @@
 
 Percorso più economico: l'app gira in locale finché non è collaudata.
 Le funzioni che dipendono da accessi non confermati vanno dichiarate non operative, mai simulate.
+
+## Decisioni del 21-11-2026 (pagina web)
+- Stile scuro e verde in versione messaggistica, con sfondo di icone a linea; una sola pagina che si adatta da sola a computer e telefono.
+- Accesso con PIN di 4 cifre (salvato cifrato, blocco temporaneo dopo 5 errori); l'app è solo per Paolo.
+- Telefono: accesso da fuori casa con Tailscale (gratuito per uso personale).
+- Funzioni scelte: avvisi di spesa (50% e 80%), modelli di discussione, esportazione del rapporto su Drive (solo dopo permesso), Face ID più avanti.
+- Non scelte per ora: avvisi su Telegram.
