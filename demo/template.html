@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Bridge Simulazione</title>
+<style>
+/* Direzione: strumento di lavoro, sala di discussione a tre voci. Teal = Claude, blu = ChatGPT, inchiostro neutro = utente. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #ffffff;
+  --ink: #16202a;
+  --muted: #5b6875;
+  --line: #d8dee4;
+  --claude: #0f766e;
+  --chatgpt: #2554c7;
+  --ok: #15803d;
+  --warn: #a16207;
+  --bad: #b42318;
+  --warn-bg: #fdf3d8;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1419; --surface: #18202a; --ink: #e8edf2; --muted: #9aa7b4; --line: #2b3643;
+    --claude: #3cc4b5; --chatgpt: #7ea2ff; --ok: #4ade80; --warn: #facc15; --bad: #ff8a7a; --warn-bg: #3a3012;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1419; --surface: #18202a; --ink: #e8edf2; --muted: #9aa7b4; --line: #2b3643;
+  --claude: #3cc4b5; --chatgpt: #7ea2ff; --ok: #4ade80; --warn: #facc15; --bad: #ff8a7a; --warn-bg: #3a3012;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 var(--font); }
+main { max-width: 720px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; text-wrap: balance; }
+.sub { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+.banner { background: var(--warn-bg); color: var(--ink); border: 1px solid var(--warn); border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.stat small { display: block; color: var(--muted); font-size: 12px; }
+.stat b { font-variant-numeric: tabular-nums; font-size: 15px; }
+#state { display: inline-block; padding: 1px 8px; border-radius: 999px; background: var(--line); font-size: 14px; }
+#state[data-state="running"] { background: var(--claude); color: #fff; }
+#state[data-state="waiting_user"] { background: var(--warn); color: #fff; }
+#state[data-state="finished"] { background: var(--ok); color: #fff; }
+#state[data-state="stopped"] { background: var(--bad); color: #fff; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+button, select, input { font: inherit; }
+button { min-height: 44px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+button:disabled { opacity: 0.4; cursor: default; }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--chatgpt); outline-offset: 2px; }
+#chat { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; height: 46vh; min-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.empty { margin: auto; color: var(--muted); text-align: center; max-width: 30ch; }
+.bubble { border-left: 4px solid var(--line); background: var(--bg); border-radius: 6px; padding: 8px 10px; max-width: 92%; overflow-wrap: anywhere; }
+.bubble .head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+.b-claude { border-left-color: var(--claude); }
+.b-claude .head span:first-child { color: var(--claude); }
+.b-chatgpt { border-left-color: var(--chatgpt); align-self: flex-end; }
+.b-chatgpt .head span:first-child { color: var(--chatgpt); }
+.b-user { border-left-color: var(--ink); align-self: center; }
+.b-system { align-self: center; background: transparent; border-left: 0; color: var(--muted); font-size: 14px; text-align: center; }
+.b-decision { border-left-color: var(--warn); background: var(--warn-bg); }
+.chip { border-radius: 999px; padding: 0 8px; font-size: 11px; border: 1px solid currentColor; }
+.chip-accordo { color: var(--ok); }
+.chip-disaccordo { color: var(--bad); }
+.chip-non_verificato { color: var(--warn); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.panel[hidden] { display: none; }
+.panel h2 { margin: 0; font-size: 15px; }
+.field { display: flex; gap: 8px; flex-wrap: wrap; }
+.field input { flex: 1 1 160px; min-height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+select { min-height: 44px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 0 8px; }
+#hint { min-height: 1.2em; color: var(--bad); font-size: 14px; margin: 0; }
+pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font: 13px/1.5 var(--mono); }
+.note { color: var(--muted); font-size: 13px; margin: 0; }
+@media (prefers-reduced-motion: no-preference) { button { transition: opacity .15s; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>AI Bridge, simulazione</h1>
+    <p class="sub">Chat room a tre: tu, Claude e ChatGPT.</p>
+  </header>
+
+  <div class="banner">Le due AI qui sono <b>finte</b>: leggono battute scritte a mano. Nessun servizio reale è collegato e la spesa è sempre £0,00. Serve a provare il coordinatore.</div>
+
+  <div class="stats">
+    <div class="stat"><small>Stato</small><span id="state" data-state="idle">Pronta</span></div>
+    <div class="stat"><small>Turni delle AI</small><b id="turns">0 / 12</b></div>
+    <div class="stat"><small>Spesa settimana</small><b id="spent">£0.00 / £5.00</b></div>
+  </div>
+
+  <div class="row">
+    <button id="start" class="primary">Avvia</button>
+    <button id="pause">Pausa</button>
+    <button id="resume">Riprendi</button>
+    <button id="stop">Ferma</button>
+    <button id="reset">Ricomincia</button>
+  </div>
+
+  <div id="chat" aria-live="polite"></div>
+
+  <section id="decision" class="panel" hidden>
+    <h2>Serve una tua decisione</h2>
+    <div id="question"></div>
+    <div class="row">
+      <button data-quick="Solo dal Mac, all'inizio.">Solo dal Mac</button>
+      <button data-quick="Anche dal telefono.">Anche dal telefono</button>
+    </div>
+    <div class="field">
+      <input id="answer" type="text" placeholder="Oppure scrivi la risposta" aria-label="Risposta alla decisione">
+      <button id="answerBtn" class="primary">Rispondi</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Il tuo messaggio</h2>
+    <div class="field">
+      <select id="target" aria-label="Destinatario">
+        <option value="both">Entrambe</option>
+        <option value="claude">Solo Claude</option>
+        <option value="chatgpt">Solo ChatGPT</option>
+      </select>
+      <input id="msg" type="text" placeholder="Scrivi qui" aria-label="Messaggio">
+    </div>
+    <div class="row">
+      <button id="say">Invia nella stanza</button>
+      <button id="ask">Chiedi solo a una AI</button>
+    </div>
+    <p class="note">«Invia nella stanza» funziona durante la discussione (se scegli una sola AI, parla per prima). «Chiedi solo a una AI» è la modalità diretta: l'altra AI non viene coinvolta e serve la discussione ferma o in pausa.</p>
+    <p id="hint" role="status"></p>
+  </section>
+
+  <section id="report" class="panel" hidden>
+    <h2>Rapporto finale</h2>
+    <pre id="reportText"></pre>
+  </section>
+</main>
+<script>/*__SCRIPT__*/</script>
+</body>
+</html>
