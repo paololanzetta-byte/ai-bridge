@@ -36,3 +36,12 @@ I dati di accesso restano nel file `~/.config/ai-bridge/openai.json` sul tuo Mac
 Ogni conversazione di `npm run chat` viene salvata in `data/ai-bridge.db` (un file SQLite, gratuito, solo sul tuo Mac).
 - `npm run history` mostra l'elenco.
 - `npm run history -- 3` rilegge la conversazione n. 3 con il suo rapporto.
+
+## La pagina web (PIN, foto, telefono)
+
+1. Prova senza chiavi e senza costi: `npm run web:prova`, poi apri http://127.0.0.1:3000 (risposte simulate, dati in `data-prova`).
+2. Uso vero: `npm run web` (servono il file `.env` con la chiave Claude e l'accesso ChatGPT già fatto).
+3. Al primo avvio scegli un PIN di 4 cifre. Dopo 5 errori la pagina si blocca per 5, poi 15, poi 60 minuti.
+4. Dal profilo (in basso a sinistra, o "Profilo" sul telefono) cambi nome, PIN e le foto tue, di Claude e di ChatGPT. Le foto restano in `data/avatars`, mai su GitHub.
+5. Dal telefono con Tailscale: installa Tailscale su Mac e iPhone, poi avvia con `HOST=0.0.0.0 npm run web` e apri `http://<nome-del-mac>:3000` (o l'indirizzo 100.x.y.z che Tailscale mostra). Senza `HOST=0.0.0.0` la pagina resta visibile solo dal Mac.
+6. Il rapporto si scarica dal Riepilogo. Il salvataggio su Drive parte solo se lo chiedi, ogni volta.

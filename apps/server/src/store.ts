@@ -93,6 +93,36 @@ export class Store {
       .run(sessionId, seq, m.from, JSON.stringify(m.to), m.kind, m.tag ?? null, m.text, new Date().toISOString());
   }
 
+  /** Messaggi con l'orario in cui sono stati salvati. */
+  timedMessages(sessionId: number): (Message & { at: string })[] {
+    const rows = this.db.prepare('SELECT * FROM messages WHERE session_id = ? ORDER BY seq').all(sessionId) as Record<string, unknown>[];
+    return rows.map((r) => ({
+      id: Number(r.seq) + 1,
+      from: r.sender as Message['from'],
+      to: JSON.parse(String(r.recipients)) as Message['to'],
+      text: String(r.text),
+      kind: r.kind as Message['kind'],
+      ...(r.tag ? { tag: r.tag as NonNullable<Message['tag']> } : {}),
+      at: String(r.created_at),
+    }));
+  }
+
+  /** Ultimo messaggio visibile di una sessione (anteprima per l'elenco). */
+  lastMessage(sessionId: number): { text: string; at: string } | undefined {
+    const r = this.db
+      .prepare("SELECT text, created_at FROM messages WHERE session_id = ? AND kind IN ('message','decision_answer') ORDER BY seq DESC LIMIT 1")
+      .get(sessionId) as { text: string; created_at: string } | undefined;
+    return r ? { text: r.text, at: r.created_at } : undefined;
+  }
+
+  /** Dopo un riavvio le sessioni rimaste "in corso" non sono più attive: le chiude. */
+  closeOrphans(now: Date = new Date()): number {
+    const r = this.db
+      .prepare("UPDATE sessions SET state = 'stopped', stop_reason = 'interrotta', ended_at = ? WHERE state IN ('idle','running','paused','waiting_user')")
+      .run(now.toISOString());
+    return Number(r.changes);
+  }
+
   listSessions(limit = 20): SessionRow[] {
     return (this.db.prepare('SELECT * FROM sessions ORDER BY id DESC LIMIT ?').all(limit) as Record<string, unknown>[]).map(toSession);
   }

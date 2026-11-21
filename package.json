@@ -13,7 +13,9 @@
     "login:chatgpt": "npm run build && node dist/apps/server/src/login-chatgpt.js",
     "check:chatgpt": "npm run build && node dist/apps/server/src/check-chatgpt.js",
     "chat": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/apps/server/src/chat.js",
-    "history": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/apps/server/src/history.js"
+    "history": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/apps/server/src/history.js",
+    "web": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/apps/server/src/web.js",
+    "web:prova": "npm run build --silent && AIBRIDGE_DEMO=1 node --disable-warning=ExperimentalWarning dist/apps/server/src/web.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -159,7 +159,7 @@ export class Orchestrator {
   sendUserMessage(text: string, to: AgentId[] = AGENTS): void {
     const recipients = to.length ? to : AGENTS;
     this.push('user', recipients, text, 'message');
-    if (this._state === 'running' && recipients.length === 1) {
+    if ((this._state === 'running' || this._state === 'paused') && recipients.length === 1) {
       this.forcedNext = [recipients[0] as AgentId];
     }
     this.emit();
