@@ -10,6 +10,7 @@ import { ChatGPTAdapter, ClaudeAdapter } from '../../../packages/adapters/src/in
 import { Orchestrator, reportToText, type Message } from '../../../packages/orchestrator/src/index.js';
 import { Ledger } from './ledger.js';
 import { OpenAIAuth } from './openai-auth.js';
+import { Store } from './store.js';
 
 try {
   process.loadEnvFile('.env');
@@ -65,6 +66,9 @@ const orch = new Orchestrator(
   { maxTurns, weeklyBudgetGbp: budget, spentGbp: before, estimatedCostPerTurnGbp: 0.02 },
 );
 
+const store = new Store('data/ai-bridge.db');
+const { sessionId } = store.attach(orch, goal);
+
 const NAMES: Record<string, string> = { user: 'Tu', claude: 'Claude', chatgpt: 'ChatGPT', system: 'Sistema' };
 let printed = 0;
 orch.onChange(() => {
@@ -96,4 +100,5 @@ const report = reportToText(orch.report());
 mkdirSync('data/reports', { recursive: true });
 const file = `data/reports/rapporto-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;
 writeFileSync(file, report);
-console.log(`\n${report}\n\nSpesa di questa conversazione: £${delta.toFixed(4)} · settimana: £${total.toFixed(4)} di £${budget.toFixed(2)}\nRapporto salvato in ${file}`);
+console.log(`\n${report}\n\nSpesa di questa conversazione: £${delta.toFixed(4)} · settimana: £${total.toFixed(4)} di £${budget.toFixed(2)}\nRapporto salvato in ${file}\nConversazione n. ${sessionId} salvata nell'archivio (npm run history).`);
+store.close();

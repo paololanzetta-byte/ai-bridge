@@ -31,3 +31,8 @@ Il costo in denaro è zero: l'uso conta sulla quota del tuo abbonamento ChatGPT.
 5. Prima conversazione reale: `npm run chat -- "Quale database scegliere per AI Bridge?"` (massimo 6 turni, si ferma al tetto di spesa, salva il rapporto in `data/reports`).
 
 I dati di accesso restano nel file `~/.config/ai-bridge/openai.json` sul tuo Mac (non viene mai caricato su GitHub).
+
+# Archivio delle conversazioni
+Ogni conversazione di `npm run chat` viene salvata in `data/ai-bridge.db` (un file SQLite, gratuito, solo sul tuo Mac).
+- `npm run history` mostra l'elenco.
+- `npm run history -- 3` rilegge la conversazione n. 3 con il suo rapporto.

@@ -12,7 +12,8 @@
     "check:claude": "npm run build && node dist/apps/server/src/check-claude.js",
     "login:chatgpt": "npm run build && node dist/apps/server/src/login-chatgpt.js",
     "check:chatgpt": "npm run build && node dist/apps/server/src/check-chatgpt.js",
-    "chat": "npm run build --silent && node dist/apps/server/src/chat.js"
+    "chat": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/apps/server/src/chat.js",
+    "history": "npm run build --silent && node --disable-warning=ExperimentalWarning dist/apps/server/src/history.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
