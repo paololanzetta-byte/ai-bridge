@@ -9,7 +9,10 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test \"dist/tests/*.test.js\"",
     "demo": "npm run build && node scripts/build-demo.mjs",
-    "check:claude": "npm run build && node dist/apps/server/src/check-claude.js"
+    "check:claude": "npm run build && node dist/apps/server/src/check-claude.js",
+    "login:chatgpt": "npm run build && node dist/apps/server/src/login-chatgpt.js",
+    "check:chatgpt": "npm run build && node dist/apps/server/src/check-chatgpt.js",
+    "chat": "npm run build --silent && node dist/apps/server/src/chat.js"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

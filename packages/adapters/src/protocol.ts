@@ -1,4 +1,31 @@
-import type { AdapterReply } from '../../orchestrator/src/index.js';
+import type { AdapterReply, AgentId, Message } from '../../orchestrator/src/index.js';
+
+export type RoleMessage = { role: 'user' | 'assistant'; content: string };
+
+const WHO: Record<string, string> = { user: 'Utente', chatgpt: 'ChatGPT', claude: 'Claude' };
+
+/**
+ * Converte la cronologia della stanza in messaggi "user"/"assistant" dal punto di vista di `self`:
+ * i suoi interventi sono "assistant", tutto il resto è "user" con il nome di chi ha parlato.
+ * Ruoli consecutivi uguali vengono uniti; si parte e si finisce sempre da "user".
+ */
+export function toRoleMessages(history: readonly Message[], self: AgentId): RoleMessage[] {
+  const out: RoleMessage[] = [];
+  const push = (role: RoleMessage['role'], content: string) => {
+    const last = out[out.length - 1];
+    if (last && last.role === role) last.content += `\n\n${content}`;
+    else out.push({ role, content });
+  };
+  for (const m of history) {
+    if (m.kind === 'system' || m.kind === 'decision_request') continue;
+    if (m.from === self) push('assistant', m.text);
+    else if (m.kind === 'decision_answer') push('user', `[Utente, decisione] ${m.text}`);
+    else push('user', `[${WHO[m.from] ?? m.from}] ${m.text}`);
+  }
+  if (out[0]?.role !== 'user') out.unshift({ role: 'user', content: 'Inizia la discussione.' });
+  if (out[out.length - 1]?.role !== 'user') out.push({ role: 'user', content: 'Continua.' });
+  return out;
+}
 
 /** Istruzioni di ruolo comuni a tutte le AI reali (Claude, ChatGPT). */
 export function buildSystemPrompt(selfName: string, otherName: string, goal: string): string {

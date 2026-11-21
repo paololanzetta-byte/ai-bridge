@@ -19,3 +19,15 @@ Se va bene vedrai: "Risposta di Claude: collegamento riuscito", il costo della p
 - Non incollarla in chat, in email o in altri documenti.
 - Se pensi che qualcuno l'abbia vista, cancellala nella Console Anthropic e creane una nuova.
 - Il tetto di spesa è di 5 sterline a settimana: il programma si ferma da solo e non fa nessuna chiamata oltre il tetto.
+
+# Accesso a ChatGPT con il tuo piano
+
+Il costo in denaro è zero: l'uso conta sulla quota del tuo abbonamento ChatGPT. Funzione in anteprima presso OpenAI: potrebbe non essere disponibile per la tua app (in quel caso c'è il piano B con le API a consumo, sempre dentro il tetto di 5 sterline).
+
+1. Se hai riscaricato il progetto, copia il vecchio file `.env` nella nuova cartella (tasto Cmd+C / Cmd+V in Finder; il file è nascosto: Cmd+Maiusc+. per mostrarlo).
+2. Nel Terminale, nella cartella del progetto: `npm install` e poi `npm run login:chatgpt`.
+3. Si apre il browser: accedi a ChatGPT e conferma. Poi torna al Terminale.
+4. `npm run check:chatgpt` fa una prova minuscola e mostra i modelli disponibili.
+5. Prima conversazione reale: `npm run chat -- "Quale database scegliere per AI Bridge?"` (massimo 6 turni, si ferma al tetto di spesa, salva il rapporto in `data/reports`).
+
+I dati di accesso restano nel file `~/.config/ai-bridge/openai.json` sul tuo Mac (non viene mai caricato su GitHub).

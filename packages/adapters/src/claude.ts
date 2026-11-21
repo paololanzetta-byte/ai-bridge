@@ -1,5 +1,5 @@
 import type { Adapter, AdapterInput, AdapterReply, Message } from '../../orchestrator/src/index.js';
-import { buildSystemPrompt, parseReply } from './protocol.js';
+import { buildSystemPrompt, parseReply, toRoleMessages, type RoleMessage } from './protocol.js';
 
 const API_VERSION = '2023-06-01';
 
@@ -21,27 +21,9 @@ export interface ClaudeConfig {
   fetchImpl?: typeof fetch;
 }
 
-type ClaudeMessage = { role: 'user' | 'assistant'; content: string };
-
-const WHO: Record<string, string> = { user: 'Utente', chatgpt: 'ChatGPT', claude: 'Claude' };
-
-/** Converte la cronologia della stanza nel formato richiesto dall'API (ruoli alternati, si parte e si finisce da "user"). */
-export function toClaudeMessages(history: readonly Message[]): ClaudeMessage[] {
-  const out: ClaudeMessage[] = [];
-  const push = (role: ClaudeMessage['role'], content: string) => {
-    const last = out[out.length - 1];
-    if (last && last.role === role) last.content += `\n\n${content}`;
-    else out.push({ role, content });
-  };
-  for (const m of history) {
-    if (m.kind === 'system' || m.kind === 'decision_request') continue;
-    if (m.from === 'claude') push('assistant', m.text);
-    else if (m.kind === 'decision_answer') push('user', `[Utente, decisione] ${m.text}`);
-    else push('user', `[${WHO[m.from] ?? m.from}] ${m.text}`);
-  }
-  if (out[0]?.role !== 'user') out.unshift({ role: 'user', content: 'Inizia la discussione.' });
-  if (out[out.length - 1]?.role !== 'user') out.push({ role: 'user', content: 'Continua.' });
-  return out;
+/** Messaggi nel formato richiesto dall'API di Claude (ruoli alternati, si parte e si finisce da "user"). */
+export function toClaudeMessages(history: readonly Message[]): RoleMessage[] {
+  return toRoleMessages(history, 'claude');
 }
 
 export function costGbp(model: string, inputTokens: number, outputTokens: number, usdToGbp: number): number {
