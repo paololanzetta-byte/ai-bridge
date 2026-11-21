@@ -109,3 +109,4 @@ button{cursor:pointer;border:0;background:none}
 }
 .top{display:none;align-items:center;gap:8px;padding:8px 10px;background:rgba(13,21,17,.96);padding-top:calc(8px + env(safe-area-inset-top))}
 .top .back{font-size:26px;width:36px}.top .ctr{flex:1;text-align:center}
+.logo{width:96px;height:96px;border-radius:22px}

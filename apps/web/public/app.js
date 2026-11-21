@@ -73,7 +73,7 @@
       for (const k of ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', '⌫']) {
         keys.append(k === '' ? h('button', { class: 'ghost', disabled: true }) : h('button', { onclick: () => press(k), 'aria-label': k }, k));
       }
-      const wrap = h('div', { class: 'pin' }, avatarEl('user', info.name, 'big'), h('h1', { text: title }), h('p', { class: isErr ? 'err' : '', text: msg }), dots, keys);
+      const wrap = h('div', { class: 'pin' }, h('img', { class: 'logo', src: 'icon-dark-180.png', alt: 'AI Bridge' }), avatarEl('user', info.name, 'sm'), h('h1', { text: title }), h('p', { class: isErr ? 'err' : '', text: msg }), dots, keys);
       $app.replaceChildren(wrap);
     };
     const press = async (k) => {
