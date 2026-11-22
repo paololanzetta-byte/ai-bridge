@@ -45,7 +45,8 @@
   const dayLabel = (ms) => new Date(ms).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
   const STATES = { idle: 'non avviata', running: 'in corso', paused: 'in pausa', waiting_user: 'attende te', stopped: 'fermata', finished: 'conclusa' };
   const REASONS = { limite_turni: 'limite di turni', ripetizione: 'si ripetevano', tetto_spesa: 'tetto di spesa', conclusa: 'conclusa', fermata_utente: 'fermata da te', errore: 'errore', interrotta: 'interrotta dal riavvio' };
-  const isNarrow = () => matchMedia('(max-width:900px)').matches;
+  const isNarrow = () => matchMedia('(max-width:700px)').matches;
+  const isTablet = () => matchMedia('(min-width:701px) and (max-width:1000px)').matches;
 
   // ---------- stato ----------
   const loadListOpen = () => { try { return localStorage.getItem('aib.list') !== '0'; } catch { return true; } };
@@ -56,6 +57,9 @@
     const sh = document.querySelector('.shell');
     if (sh && S.current !== null) sh.classList.toggle('nolist', !S.listOpen);
   };
+  // Tablet in verticale: l'elenco e' un pannello che scivola sopra la chat (non si ricorda, si richiude da solo).
+  const toggleDrawer = () => { const sh = document.querySelector('.shell'); if (sh) sh.classList.toggle('drawer'); };
+  const closeDrawer = () => { const sh = document.querySelector('.shell'); if (sh && S.current !== null) sh.classList.remove('drawer'); };
 
   const avatarEl = (who, name, size) => {
     const v = S.me && S.me.avatars[who];
@@ -175,7 +179,7 @@
     const listTop = keepList ? keepList.scrollTop : 0;
     const ta = document.querySelector('.composer textarea');
     if (ta) S.draft = ta.value;
-    const shell = h('div', { class: 'shell' + (S.current !== null ? ' inchat' : '') + (S.listOpen || S.current === null ? '' : ' nolist') }, rail(), listPane(), chatPane(), bottomBar());
+    const shell = h('div', { class: 'shell' + (S.current !== null ? ' inchat' : '') + (S.listOpen || S.current === null ? '' : ' nolist') + (S.current === null ? ' drawer' : '') }, rail(), listPane(), h('div', { class: 'scrim', onclick: closeDrawer }), chatPane(), bottomBar());
     $app.replaceChildren(shell);
     fitBars();
     const f = document.querySelector('.flow');
@@ -240,7 +244,7 @@
     const stLabel = STATES[d.state] || d.state;
     const rsLabel = d.stopReason ? (REASONS[d.stopReason] || d.stopReason) : '';
     const sub = `${stLabel}${rsLabel && rsLabel !== stLabel ? ' · ' + rsLabel : ''} · turni ${d.turns}${d.maxTurns ? '/' + d.maxTurns : ''} · £${d.spentGbp.toFixed(2)}`;
-    const toggle = h('button', { class: 'listtoggle', 'aria-label': 'Mostra o nascondi le conversazioni', title: 'Mostra o nascondi le conversazioni', onclick: toggleList }, '☰');
+    const toggle = h('button', { class: 'listtoggle', 'aria-label': 'Mostra o nascondi le conversazioni', title: 'Mostra o nascondi le conversazioni', onclick: () => (isTablet() ? toggleDrawer() : toggleList()) }, '☰');
     const head = h('div', { class: 'head' }, h('div', { class: 'hrow' }, toggle, h('div', { class: 'title', text: d.goal })), h('div', { class: 'sub', text: sub }), bar);
     const flow = h('div', { class: 'flow' });
     let lastDay = '';
