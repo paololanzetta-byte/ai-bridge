@@ -45,3 +45,6 @@ Ogni conversazione di `npm run chat` viene salvata in `data/ai-bridge.db` (un fi
 4. Dal profilo (in basso a sinistra, o "Profilo" sul telefono) cambi nome, PIN e le foto tue, di Claude e di ChatGPT. Le foto restano in `data/avatars`, mai su GitHub.
 5. Dal telefono con Tailscale: installa Tailscale su Mac e iPhone, poi avvia con `HOST=0.0.0.0 npm run web` e apri `http://<nome-del-mac>:3000` (o l'indirizzo 100.x.y.z che Tailscale mostra). Senza `HOST=0.0.0.0` la pagina resta visibile solo dal Mac.
 6. Il rapporto si scarica dal Riepilogo. Il salvataggio su Drive parte solo se lo chiedi, ogni volta.
+
+## Avvio automatico
+Dentro la cartella del progetto: `sh scripts/avvio-automatico.sh` (prima ferma il server acceso a mano con Ctrl+C). Per toglierlo: `sh scripts/avvio-automatico.sh togli`. Il registro è in `~/Library/Logs/ai-bridge.log`. Dopo un aggiornamento del codice: `npm run build` e poi `launchctl kickstart -k gui/$(id -u)/com.aibridge.web`.
