@@ -48,12 +48,13 @@ button{cursor:pointer;border:0;background:none}
 
 .chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg) url(wall.svg);background-size:620px;position:relative}
 .chatempty{margin:auto;color:var(--muted);background:rgba(20,34,26,.95);padding:8px 16px;border-radius:16px}
-.flow{flex:1;overflow:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:8px}
-.head{flex:none;background:rgba(10,16,12,.4);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border-bottom:1px solid rgba(111,224,122,.2);padding:12px 20px 10px}
+.stage{position:relative;flex:1;min-height:0;overflow:hidden}
+.flow{position:absolute;inset:0;overflow:auto;padding:calc(var(--hh,96px) + 14px) 20px calc(var(--dh,72px) + 16px);display:flex;flex-direction:column;gap:8px}
+.head{position:absolute;top:0;left:0;right:0;z-index:3;background:rgba(22,56,36,.58);-webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);border-bottom:1px solid rgba(111,224,122,.28);padding:12px 20px 10px}
 .title{margin:0;font-size:19px;font-weight:700;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .sub{color:#b4c0ba;font-size:13px;margin:2px 0 8px}
 .bar{display:flex;flex-wrap:wrap;gap:6px;margin:0}
-.pill{background:rgba(31,51,39,.7);border:1px solid rgba(255,255,255,.14);padding:6px 12px;border-radius:16px;font-size:13px;color:var(--text)}
+.pill{background:rgba(52,98,66,.6);border:1px solid rgba(255,255,255,.14);padding:6px 12px;border-radius:16px;font-size:13px;color:var(--text)}
 .pill.on{background:var(--green);border-color:var(--green);color:#06120a;font-weight:600}
 .pill.danger{color:var(--danger)}.pill[disabled]{opacity:.4}
 .datepill{align-self:center;background:rgba(20,34,26,.95);padding:3px 12px;border-radius:12px;font-size:12px;color:var(--muted)}
@@ -75,12 +76,12 @@ button{cursor:pointer;border:0;background:none}
 .btn.alt{background:#24382c;color:var(--text)}
 
 /* barra in basso: pannello pieno e bordo verde, ben distinta dallo sfondo */
-.dock{flex:none;background:rgba(10,16,12,.4);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);border-top:1px solid rgba(111,224,122,.3)}
+.dock{position:absolute;bottom:0;left:0;right:0;z-index:3;background:rgba(22,56,36,.58);-webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);border-top:1px solid rgba(111,224,122,.35)}
 .composer{display:flex;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));align-items:flex-end}
-.composer textarea{flex:1;resize:none;max-height:120px;min-height:46px;background:rgba(28,48,36,.65);border:1.5px solid rgba(111,224,122,.55);border-radius:22px;padding:11px 16px;outline:none;font-size:15px}
+.composer textarea{flex:1;resize:none;max-height:120px;min-height:46px;background:rgba(40,80,54,.6);border:1.5px solid rgba(111,224,122,.55);border-radius:22px;padding:11px 16px;outline:none;font-size:15px}
 .composer textarea::placeholder{color:#a9b8b0}
 .composer textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(111,224,122,.18)}
-.composer .to{background:rgba(31,51,39,.7);border:1.5px solid rgba(111,224,122,.55);color:var(--accent);font-weight:600;border-radius:20px;padding:12px 14px;font-size:14px;white-space:nowrap}
+.composer .to{background:rgba(52,98,66,.6);border:1.5px solid rgba(111,224,122,.55);color:var(--accent);font-weight:600;border-radius:20px;padding:12px 14px;font-size:14px;white-space:nowrap}
 .send{width:46px;height:46px;border-radius:50%;background:var(--green);color:#06120a;font-size:20px;flex:none}
 .composer[data-off="1"] textarea,.composer[data-off="1"] .send,.composer[data-off="1"] .to{opacity:.5}
 .note{text-align:center;color:#d4ddd8;font-size:13px;padding:9px 14px 0}
@@ -111,9 +112,9 @@ button{cursor:pointer;border:0;background:none}
  .bottom{display:flex;position:absolute;left:0;right:0;bottom:0;height:62px;padding-bottom:env(safe-area-inset-bottom);box-sizing:content-box;background:#0d1511;border-top:1px solid var(--line);z-index:4}
  .bottom button{flex:1;color:var(--muted);font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
  .bottom button.on{color:var(--accent)}
- .flow{padding:12px}
+ .flow{padding-left:12px;padding-right:12px}
 }
-.top{display:none;align-items:center;gap:8px;padding:8px 10px;background:rgba(10,16,12,.4);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);padding-top:calc(8px + env(safe-area-inset-top))}
+.top{display:none;align-items:center;gap:8px;padding:8px 10px;background:rgba(22,56,36,.58);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);padding-top:calc(8px + env(safe-area-inset-top))}
 .top .back{font-size:26px;width:36px}.top .ctr{flex:1;text-align:center}
 .logo{width:96px;height:96px;border-radius:22px}
 button.av{padding:0;border:0;aspect-ratio:1;display:block;line-height:1}

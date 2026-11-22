@@ -144,6 +144,23 @@
 
   const filtered = () => S.sessions.filter((s) => S.filter === 'all' || (S.filter === 'live' ? ['running', 'paused', 'waiting_user'].includes(s.state) : ['finished', 'stopped'].includes(s.state)));
 
+  // La chat scorre DIETRO testata e barra in basso: serve sapere quanto sono alte per lasciare lo spazio in cima e in fondo.
+  const fitBars = () => {
+    const st = document.querySelector('.stage');
+    if (!st) return;
+    const hd = st.querySelector('.head'), dk = st.querySelector('.dock');
+    const apply = () => {
+      st.style.setProperty('--hh', (hd ? hd.offsetHeight : 0) + 'px');
+      st.style.setProperty('--dh', (dk ? dk.offsetHeight : 0) + 'px');
+    };
+    apply();
+    if (typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(apply);
+      if (hd) ro.observe(hd);
+      if (dk) ro.observe(dk);
+    }
+  };
+
   const render = (scrollEnd) => {
     const oldFlow = document.querySelector('.flow');
     const stick = !oldFlow || scrollEnd || oldFlow.scrollHeight - oldFlow.scrollTop - oldFlow.clientHeight < 80;
@@ -153,6 +170,7 @@
     if (ta) S.draft = ta.value;
     const shell = h('div', { class: 'shell' + (S.current !== null ? ' inchat' : '') }, rail(), listPane(), chatPane(), bottomBar());
     $app.replaceChildren(shell);
+    fitBars();
     const f = document.querySelector('.flow');
     if (f && stick) {
       // Si scende in fondo subito e di nuovo quando le foto profilo finiscono di caricarsi (cambiano l'altezza).
@@ -227,7 +245,7 @@
     if (d.state === 'waiting_user' && live && d.question) flow.append(decisionEl(d));
     const top = h('div', { class: 'top' }, h('button', { class: 'back', onclick: () => { S.current = null; S.detail = null; render(); }, 'aria-label': 'Indietro' }, '‹'),
       h('div', { class: 'ctr' }, h('span', { class: 'pill', text: 'AI Bridge' })), h('span', { class: 'back' }));
-    return h('section', { class: 'chat' }, top, head, flow, composerEl(d, canWrite));
+    return h('section', { class: 'chat' }, top, h('div', { class: 'stage' }, flow, head, composerEl(d, canWrite)));
   };
 
   const messageEl = (m, d) => {
