@@ -8,6 +8,12 @@ test('toglie la riga di servizio tagliata dal limite di token', () => {
   assert.equal(parseReply('Fine. TAG:').text, 'Fine.');
 });
 
+test('toglie anche CHIEDI_UTENTE e CONCLUSO tagliati', () => {
+  assert.equal(parseReply('Dipende da come la useremo. CHIEDI').text, 'Dipende da come la useremo.');
+  assert.equal(parseReply('Dipende.\nCHIEDI_UT').text, 'Dipende.');
+  assert.equal(parseReply('Fatto. CONCLUS').text, 'Fatto.');
+});
+
 test('non tocca il testo normale e le righe di servizio complete', () => {
   assert.equal(parseReply('La pasta è ottima').text, 'La pasta è ottima');
   const r = parseReply('Va bene.\nTAG: accordo');

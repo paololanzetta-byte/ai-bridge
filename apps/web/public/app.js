@@ -194,7 +194,7 @@
       h('div', { class: 'items' },
         items.length ? items.map((s) => h('button', { class: 'item' + (s.id === S.current ? ' on' : ''), onclick: () => open(s.id) },
           h('div', { class: 'av' }, '💬'),
-          h('div', { class: 't' }, h('b', { text: s.goal }), h('small', { text: s.preview || '—' })),
+          h('div', { class: 't' }, h('b', { text: s.goal }), h('small', { text: String(s.preview || '—').replace(/\*\*|`/g, '').replace(/\s+/g, ' ').trim() })),
           h('div', {}, h('time', { text: hhmm(s.at) }), h('br'), stBadge(s.state)))) : h('div', { class: 'empty', text: 'Nessuna discussione. Tocca + per iniziare.' })));
   };
 
@@ -212,8 +212,11 @@
       live && d.state === 'paused' ? h('button', { class: 'pill', onclick: () => act(() => api('POST', `/api/sessions/${d.id}/resume`, {})) }, '▶ Riprendi') : null,
       live && ['running', 'paused', 'waiting_user'].includes(d.state) ? h('button', { class: 'pill danger', onclick: () => act(() => api('POST', `/api/sessions/${d.id}/stop`, {})) }, '■ Ferma') : null,
       h('button', { class: 'pill', onclick: summarySheet }, 'Riepilogo'));
-    const sub = `${STATES[d.state] || d.state}${d.stopReason ? ' · ' + (REASONS[d.stopReason] || d.stopReason) : ''} · turni ${d.turns}${d.maxTurns ? '/' + d.maxTurns : ''} · £${d.spentGbp.toFixed(2)}`;
-    const flow = h('div', { class: 'flow' }, h('div', { class: 'title', text: d.goal }), h('div', { class: 'sub', text: sub }), bar);
+    const stLabel = STATES[d.state] || d.state;
+    const rsLabel = d.stopReason ? (REASONS[d.stopReason] || d.stopReason) : '';
+    const sub = `${stLabel}${rsLabel && rsLabel !== stLabel ? ' · ' + rsLabel : ''} · turni ${d.turns}${d.maxTurns ? '/' + d.maxTurns : ''} · £${d.spentGbp.toFixed(2)}`;
+    const head = h('div', { class: 'head' }, h('div', { class: 'title', text: d.goal }), h('div', { class: 'sub', text: sub }), bar);
+    const flow = h('div', { class: 'flow' });
     let lastDay = '';
     for (const m of d.messages) {
       const day = dayLabel(m.at);
@@ -224,7 +227,7 @@
     if (d.state === 'waiting_user' && live && d.question) flow.append(decisionEl(d));
     const top = h('div', { class: 'top' }, h('button', { class: 'back', onclick: () => { S.current = null; S.detail = null; render(); }, 'aria-label': 'Indietro' }, '‹'),
       h('div', { class: 'ctr' }, h('span', { class: 'pill', text: 'AI Bridge' })), h('span', { class: 'back' }));
-    return h('section', { class: 'chat' }, top, flow, composerEl(d, canWrite));
+    return h('section', { class: 'chat' }, top, head, flow, composerEl(d, canWrite));
   };
 
   const messageEl = (m, d) => {
