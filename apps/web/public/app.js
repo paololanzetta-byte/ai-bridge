@@ -48,7 +48,14 @@
   const isNarrow = () => matchMedia('(max-width:900px)').matches;
 
   // ---------- stato ----------
-  const S = { me: null, sessions: [], filter: 'all', current: null, detail: null, to: 'both', draft: '' };
+  const loadListOpen = () => { try { return localStorage.getItem('aib.list') !== '0'; } catch { return true; } };
+  const S = { me: null, sessions: [], filter: 'all', current: null, detail: null, to: 'both', draft: '', listOpen: loadListOpen() };
+  const toggleList = () => {
+    S.listOpen = !S.listOpen;
+    try { localStorage.setItem('aib.list', S.listOpen ? '1' : '0'); } catch { /* solo una comodità */ }
+    const sh = document.querySelector('.shell');
+    if (sh && S.current !== null) sh.classList.toggle('nolist', !S.listOpen);
+  };
 
   const avatarEl = (who, name, size) => {
     const v = S.me && S.me.avatars[who];
@@ -168,7 +175,7 @@
     const listTop = keepList ? keepList.scrollTop : 0;
     const ta = document.querySelector('.composer textarea');
     if (ta) S.draft = ta.value;
-    const shell = h('div', { class: 'shell' + (S.current !== null ? ' inchat' : '') }, rail(), listPane(), chatPane(), bottomBar());
+    const shell = h('div', { class: 'shell' + (S.current !== null ? ' inchat' : '') + (S.listOpen || S.current === null ? '' : ' nolist') }, rail(), listPane(), chatPane(), bottomBar());
     $app.replaceChildren(shell);
     fitBars();
     const f = document.querySelector('.flow');
@@ -233,7 +240,8 @@
     const stLabel = STATES[d.state] || d.state;
     const rsLabel = d.stopReason ? (REASONS[d.stopReason] || d.stopReason) : '';
     const sub = `${stLabel}${rsLabel && rsLabel !== stLabel ? ' · ' + rsLabel : ''} · turni ${d.turns}${d.maxTurns ? '/' + d.maxTurns : ''} · £${d.spentGbp.toFixed(2)}`;
-    const head = h('div', { class: 'head' }, h('div', { class: 'title', text: d.goal }), h('div', { class: 'sub', text: sub }), bar);
+    const toggle = h('button', { class: 'listtoggle', 'aria-label': 'Mostra o nascondi le conversazioni', title: 'Mostra o nascondi le conversazioni', onclick: toggleList }, '☰');
+    const head = h('div', { class: 'head' }, h('div', { class: 'hrow' }, toggle, h('div', { class: 'title', text: d.goal })), h('div', { class: 'sub', text: sub }), bar);
     const flow = h('div', { class: 'flow' });
     let lastDay = '';
     for (const m of d.messages) {
