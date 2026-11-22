@@ -58,6 +58,8 @@ export function parseReply(raw: string): Pick<AdapterReply, 'text' | 'tag' | 'ne
     else if (DONE_RE.test(line)) out.done = true;
     else kept.push(line);
   }
-  out.text = kept.join('\n').trim() || '(nessun testo)';
+  // Se la risposta e' stata tagliata dal limite di token proprio sulla riga di servizio ("... TA", "... TAG:"), la togliamo.
+  const cleaned = kept.join('\n').replace(/(?:^|\s)TA(?:G(?::[ \t]*[A-Za-z_]*)?)?[ \t]*$/, '').trim();
+  out.text = cleaned || '(nessun testo)';
   return out;
 }

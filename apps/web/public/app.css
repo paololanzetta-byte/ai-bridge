@@ -48,12 +48,12 @@ button{cursor:pointer;border:0;background:none}
 
 .chat{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg) url(wall.svg);background-size:620px;position:relative}
 .chatempty{margin:auto;color:var(--muted);background:rgba(20,34,26,.95);padding:8px 16px;border-radius:16px}
-.flow{flex:1;overflow:auto;padding:18px 20px 10px;display:flex;flex-direction:column;gap:8px}
+.flow{flex:1;overflow:auto;padding:18px 20px 28px;display:flex;flex-direction:column;gap:8px}
 .title{margin:6px 0 0;font-size:20px;font-weight:700}
 .sub{color:var(--muted);font-size:13px;margin-bottom:6px}
 .bar{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
-.pill{background:rgba(20,34,26,.95);padding:6px 12px;border-radius:16px;font-size:13px;color:var(--text)}
-.pill.on{background:var(--green);color:#06120a;font-weight:600}
+.pill{background:#1f3327;border:1px solid rgba(255,255,255,.14);padding:6px 12px;border-radius:16px;font-size:13px;color:var(--text)}
+.pill.on{background:var(--green);border-color:var(--green);color:#06120a;font-weight:600}
 .pill.danger{color:var(--danger)}.pill[disabled]{opacity:.4}
 .datepill{align-self:center;background:rgba(20,34,26,.95);padding:3px 12px;border-radius:12px;font-size:12px;color:var(--muted)}
 .sys{align-self:center;background:rgba(20,34,26,.95);padding:4px 14px;border-radius:12px;font-size:13px;color:var(--muted);max-width:85%;text-align:center}
@@ -65,6 +65,7 @@ button{cursor:pointer;border:0;background:none}
 .claude .nm{color:var(--claude)}.chatgpt .nm{color:var(--gpt)}.me .nm{color:#d6f5d9}
 .tag{font-size:11px;margin-left:8px;color:var(--accent);font-weight:400}.tag.d{color:#f3d77a}.tag.n{color:#9ec5ff}
 .bub .at{display:block;text-align:right;font-size:11px;color:var(--muted);margin-top:2px}.me .bub .at{color:#cdeccf}
+.bub>div{white-space:pre-wrap}
 .bub code{background:#0007;padding:1px 5px;border-radius:5px;font-size:13px}
 .dec{align-self:center;width:min(560px,92%);background:var(--panel);border:1px solid var(--accent);border-radius:16px;padding:12px}
 .dec b{color:var(--accent)}.dec p{margin:6px 0 10px}
@@ -72,12 +73,16 @@ button{cursor:pointer;border:0;background:none}
 .btn{background:var(--green);color:#06120a;font-weight:700;border-radius:12px;padding:9px 16px}
 .btn.alt{background:#24382c;color:var(--text)}
 
-.composer{display:flex;gap:8px;padding:10px 14px calc(10px + env(safe-area-inset-bottom));align-items:flex-end}
-.composer textarea{flex:1;resize:none;max-height:120px;background:rgba(20,34,26,.97);border:0;border-radius:20px;padding:10px 14px;outline:none}
-.composer .to{background:rgba(20,34,26,.97);border-radius:18px;padding:10px 12px;font-size:13px;white-space:nowrap}
-.send{width:42px;height:42px;border-radius:50%;background:var(--green);color:#06120a;font-size:20px}
-.composer[data-off="1"] textarea,.composer[data-off="1"] .send{opacity:.4}
-.note{text-align:center;color:var(--muted);font-size:12px;padding:0 14px 8px}
+/* barra in basso: pannello pieno e bordo verde, ben distinta dallo sfondo */
+.dock{flex:none;background:#0f1a14;border-top:1px solid rgba(111,224,122,.45)}
+.composer{display:flex;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));align-items:flex-end}
+.composer textarea{flex:1;resize:none;max-height:120px;min-height:46px;background:#1c3024;border:1.5px solid rgba(111,224,122,.6);border-radius:22px;padding:11px 16px;outline:none;font-size:15px}
+.composer textarea::placeholder{color:#a9b8b0}
+.composer textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(111,224,122,.18)}
+.composer .to{background:#1f3327;border:1.5px solid rgba(111,224,122,.6);color:var(--accent);font-weight:600;border-radius:20px;padding:12px 14px;font-size:14px;white-space:nowrap}
+.send{width:46px;height:46px;border-radius:50%;background:var(--green);color:#06120a;font-size:20px;flex:none}
+.composer[data-off="1"] textarea,.composer[data-off="1"] .send,.composer[data-off="1"] .to{opacity:.5}
+.note{text-align:center;color:#d4ddd8;font-size:13px;padding:9px 14px 0}
 
 /* sheets */
 .veil{position:fixed;inset:0;background:#000a;z-index:50;display:flex;align-items:center;justify-content:center}

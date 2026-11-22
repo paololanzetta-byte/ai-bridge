@@ -154,7 +154,12 @@
     const shell = h('div', { class: 'shell' + (S.current !== null ? ' inchat' : '') }, rail(), listPane(), chatPane(), bottomBar());
     $app.replaceChildren(shell);
     const f = document.querySelector('.flow');
-    if (f && stick) f.scrollTop = f.scrollHeight;
+    if (f && stick) {
+      // Si scende in fondo subito e di nuovo quando le foto profilo finiscono di caricarsi (cambiano l'altezza).
+      const toEnd = () => { f.scrollTop = f.scrollHeight; };
+      toEnd(); requestAnimationFrame(toEnd);
+      f.querySelectorAll('img').forEach((im) => { if (!im.complete) im.addEventListener('load', toEnd, { once: true }); });
+    }
     const it = document.querySelector('.items');
     if (it) it.scrollTop = listTop;
     const t2 = document.querySelector('.composer textarea');
@@ -256,7 +261,7 @@
     };
     ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !isNarrow()) { e.preventDefault(); send(); } });
     ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 120) + 'px'; });
-    return h('div', {}, why ? h('div', { class: 'note', text: why }) : null,
+    return h('div', { class: 'dock' }, why ? h('div', { class: 'note', text: why }) : null,
       h('div', { class: 'composer', 'data-off': canWrite ? '0' : '1' },
         h('button', { class: 'to', onclick: () => { S.to = order[(order.indexOf(S.to) + 1) % 3]; render(); }, disabled: !canWrite }, toLabel[S.to]), ta,
         h('button', { class: 'send', onclick: send, disabled: !canWrite, 'aria-label': 'Invia' }, '➤')));
