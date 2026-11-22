@@ -10,12 +10,17 @@ import {
   type State,
   type StopReason,
 } from '../../../packages/orchestrator/src/index.js';
-import { Ledger } from './ledger.js';
+import { Budget } from './budget.js';
 import { Security } from './security.js';
 import { Store } from './store.js';
 
 /** Errore con un messaggio scritto per l'utente (si può mostrare così com'è). */
 export class UserError extends Error {}
+
+/** Il server si apre solo sul Mac stesso (127.0.0.1): per il telefono si usa Tailscale Serve. */
+export function isLoopbackHost(host: string): boolean {
+  return host === '127.0.0.1' || host === 'localhost' || host === '::1';
+}
 
 export type Mode = 'autonoma' | 'diretta' | 'ibrida';
 const MODES: Mode[] = ['autonoma', 'diretta', 'ibrida'];
@@ -58,7 +63,6 @@ interface Live {
   orch: Orchestrator;
   mode: Mode;
   maxTurns: number;
-  lastSpent: number;
 }
 
 function sniffImage(b: Buffer): 'png' | 'jpg' | 'webp' | undefined {
@@ -72,9 +76,11 @@ export function createApp(opts: AppOptions) {
   mkdirSync(opts.dataDir, { recursive: true });
   const now = opts.now ?? Date.now;
   const security = new Security(join(opts.dataDir, 'settings.json'), now);
-  const ledger = new Ledger(join(opts.dataDir, 'ledger.json'));
   const store = new Store(join(opts.dataDir, 'ai-bridge.db'));
   store.closeOrphans();
+  const budget = new Budget(store.database, opts.weeklyBudgetGbp, () => new Date(now()));
+  budget.settleOrphans();
+  budget.importLegacy(join(opts.dataDir, 'ledger.json'));
   const avatarDir = join(opts.dataDir, 'avatars');
   const live = new Map<number, Live>();
   const clients = new Set<ServerResponse>();
@@ -128,12 +134,17 @@ export function createApp(opts: AppOptions) {
     const m = /(?:^|;\s*)ai_bridge_session=([a-f0-9]+)/.exec(req.headers.cookie ?? '');
     return m?.[1];
   };
-  const setCookie = (token: string) => `${COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${12 * 3600}`;
+  // Fuori da 127.0.0.1 (cioè dietro Tailscale Serve, che è HTTPS) il cookie viaggia solo su connessioni protette.
+  const secureFlag = (req: IncomingMessage): string => {
+    const host = (req.headers.host ?? '').replace(/:\d+$/, '').replace(/^\[|\]$/g, '');
+    return isLoopbackHost(host) ? '' : '; Secure';
+  };
+  const setCookie = (token: string, req: IncomingMessage) => `${COOKIE}=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${12 * 3600}${secureFlag(req)}`;
   const clearCookie = `${COOKIE}=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`;
 
   // ---------- dati ----------
   const level = (): 'ok' | '50' | '80' | 'tetto' => {
-    const r = ledger.spent() / opts.weeklyBudgetGbp;
+    const r = budget.weeklySpentGbp() / opts.weeklyBudgetGbp;
     return r >= 1 ? 'tetto' : r >= 0.8 ? '80' : r >= 0.5 ? '50' : 'ok';
   };
 
@@ -161,7 +172,7 @@ export function createApp(opts: AppOptions) {
       stopReason: l ? (l.orch.stopReason ?? null) : s.stopReason,
       turns: l ? l.orch.turnsDone : s.turns,
       maxTurns: l?.maxTurns ?? null,
-      spentGbp: l ? l.orch.spentGbp - (l.lastSpent - l.orch.spentGbp > 0 ? 0 : 0) : s.spentGbp,
+      spentGbp: l ? l.orch.spentGbp : s.spentGbp,
       startedAt: s.startedAt,
       endedAt: s.endedAt,
       live: Boolean(l),
@@ -195,24 +206,16 @@ export function createApp(opts: AppOptions) {
   const createSession = async (goal: string, mode: Mode, maxTurns: number): Promise<number> => {
     if (level() === 'tetto') throw new UserError('Il tetto di spesa settimanale è già raggiunto.');
     const adapters = await opts.makeAdapters();
-    const spent = ledger.spent();
     const orch = new Orchestrator(adapters, {
       maxTurns,
       weeklyBudgetGbp: opts.weeklyBudgetGbp,
-      spentGbp: spent,
+      budget: budget.gate(),
       estimatedCostPerTurnGbp: opts.estimatedCostPerTurnGbp ?? (opts.demo ? 0 : 0.02),
     });
     const { sessionId } = store.attach(orch, goal);
-    const l: Live = { orch, mode, maxTurns, lastSpent: spent };
+    const l: Live = { orch, mode, maxTurns };
     live.set(sessionId, l);
-    orch.onChange(() => {
-      const d = orch.spentGbp - l.lastSpent;
-      if (d > 0) {
-        ledger.add(d);
-        l.lastSpent = orch.spentGbp;
-      }
-      broadcast(sessionId);
-    });
+    orch.onChange(() => broadcast(sessionId));
     orch.start(goal);
     if (mode === 'diretta') orch.pause();
     else background(orch.run());
@@ -257,12 +260,12 @@ export function createApp(opts: AppOptions) {
       const body = await readJson(req);
       if (!Security.validPin(body.pin)) return fail(res, 400, 'Il PIN deve essere di 4 cifre.');
       security.setPin(body.pin);
-      return send(res, 200, { ok: true }, { 'set-cookie': setCookie(security.issue()) });
+      return send(res, 200, { ok: true }, { 'set-cookie': setCookie(security.issue(), req) });
     }
     if (method === 'POST' && path === '/api/login') {
       const body = await readJson(req);
       const r = security.verify(body.pin);
-      if (r.ok) return send(res, 200, { ok: true }, { 'set-cookie': setCookie(security.issue()) });
+      if (r.ok) return send(res, 200, { ok: true }, { 'set-cookie': setCookie(security.issue(), req) });
       if (r.retryAfterSec) return send(res, 429, { error: 'Troppi tentativi.', retryAfterSec: r.retryAfterSec });
       return send(res, 401, { error: 'PIN errato.', left: r.left ?? 0 });
     }
@@ -275,7 +278,7 @@ export function createApp(opts: AppOptions) {
     if (!security.check(cookieOf(req))) return fail(res, 401, 'Accesso richiesto.');
 
     if (method === 'GET' && path === '/api/me') {
-      const spent = ledger.spent();
+      const spent = budget.weeklySpentGbp();
       return send(res, 200, {
         name: security.name(),
         demo: Boolean(opts.demo),
@@ -465,5 +468,5 @@ export function createApp(opts: AppOptions) {
     clients.clear();
     store.close();
   };
-  return { handler, close, security, store, ledger, files, readFileSync };
+  return { handler, close, security, store, budget, files, readFileSync };
 }

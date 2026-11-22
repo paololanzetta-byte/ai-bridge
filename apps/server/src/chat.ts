@@ -8,7 +8,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { createInterface } from 'node:readline/promises';
 import { ChatGPTAdapter, ClaudeAdapter } from '../../../packages/adapters/src/index.js';
 import { Orchestrator, reportToText, type Message } from '../../../packages/orchestrator/src/index.js';
-import { Ledger } from './ledger.js';
+import { Budget } from './budget.js';
 import { OpenAIAuth } from './openai-auth.js';
 import { Store } from './store.js';
 
@@ -33,8 +33,11 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const ledger = new Ledger('data/ledger.json');
-const before = ledger.spent();
+const store = new Store('data/ai-bridge.db');
+const registry = new Budget(store.database, budget);
+registry.settleOrphans();
+registry.importLegacy('data/ledger.json');
+const before = registry.weeklySpentGbp();
 if (before >= budget) {
   console.error(`Tetto settimanale raggiunto (£${before.toFixed(2)} di £${budget.toFixed(2)}): nessuna conversazione.`);
   process.exit(1);
@@ -63,10 +66,9 @@ const orch = new Orchestrator(
     claude: new ClaudeAdapter({ apiKey, usdToGbp }),
     chatgpt: new ChatGPTAdapter({ getAccessToken: () => auth.getAccessToken(), model }),
   },
-  { maxTurns, weeklyBudgetGbp: budget, spentGbp: before, estimatedCostPerTurnGbp: 0.02 },
+  { maxTurns, weeklyBudgetGbp: budget, budget: registry.gate(), estimatedCostPerTurnGbp: 0.02 },
 );
 
-const store = new Store('data/ai-bridge.db');
 const { sessionId } = store.attach(orch, goal);
 
 const NAMES: Record<string, string> = { user: 'Tu', claude: 'Claude', chatgpt: 'ChatGPT', system: 'Sistema' };
@@ -94,8 +96,8 @@ while (orch.state === 'waiting_user') {
 }
 rl.close();
 
-const delta = Math.max(0, orch.spentGbp - before);
-const total = ledger.add(delta);
+const delta = orch.spentGbp;
+const total = registry.weeklySpentGbp();
 const report = reportToText(orch.report());
 mkdirSync('data/reports', { recursive: true });
 const file = `data/reports/rapporto-${new Date().toISOString().replace(/[:.]/g, '-')}.txt`;

@@ -1,4 +1,4 @@
-import type { Adapter, AdapterInput, AdapterReply } from '../../orchestrator/src/index.js';
+import { notBilled, type Adapter, type AdapterInput, type AdapterReply } from '../../orchestrator/src/index.js';
 import { buildSystemPrompt, parseReply, toRoleMessages } from './protocol.js';
 import { sseEvents } from './sse.js';
 
@@ -38,6 +38,7 @@ export class ChatGPTAdapter implements Adapter {
         store: false,
         stream: true,
       }),
+      ...(input.signal ? { signal: input.signal } : {}),
     });
 
     if (!res.ok || !res.body) {
@@ -48,7 +49,7 @@ export class ChatGPTAdapter implements Adapter {
       } catch {
         // corpo non JSON
       }
-      throw new Error(`Errore dal servizio ChatGPT (HTTP ${res.status}${code ? `, ${code}` : ''})`);
+      throw notBilled(new Error(`Errore dal servizio ChatGPT (HTTP ${res.status}${code ? `, ${code}` : ''})`));
     }
 
     let text = '';

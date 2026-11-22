@@ -14,5 +14,8 @@
 
 ## Pagina web
 - PIN a 4 cifre salvato con scrypt (mai in chiaro), blocco progressivo dopo 5 errori; cookie di sessione HttpOnly/SameSite=Strict, 12 ore.
-- Il server ascolta solo su 127.0.0.1 salvo `HOST=0.0.0.0` (necessario per Tailscale): un PIN di 4 cifre è debole, per questo non va mai esposto a Internet.
+- Il server ascolta solo su 127.0.0.1 e rifiuta di aprirsi alla rete (serve `AIBRIDGE_ALLOW_LAN=1`). Dal telefono si usa Tailscale Serve (HTTPS, solo dispositivi del tuo account). Un PIN di 4 cifre è debole: la pagina non va mai esposta a Internet (niente Funnel). Fuori da 127.0.0.1 il cookie di sessione ha il flag Secure.
 - Controllo Origin sulle richieste che modificano dati, CSP restrittiva, foto verificate dal contenuto (PNG/JPG/WebP, max 2 MB).
+
+## Spesa
+Registro unico in SQLite; prenotazione atomica del costo massimo prima di ogni chiamata (transazione esclusiva); spesa della discussione separata dal totale settimanale; prenotazioni orfane dopo un crash contate come spese. Limite onesto: è un tetto interno basato sui prezzi dichiarati, non un blocco sul conto del fornitore.

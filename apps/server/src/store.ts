@@ -19,6 +19,11 @@ export interface SessionRow {
 export class Store {
   private readonly db: DatabaseSync;
 
+  /** Connessione all'archivio, condivisa con il registro della spesa (un solo file). */
+  get database(): DatabaseSync {
+    return this.db;
+  }
+
   constructor(path: string) {
     if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
     this.db = new DatabaseSync(path);

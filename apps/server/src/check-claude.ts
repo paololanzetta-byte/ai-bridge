@@ -3,7 +3,8 @@
  * Legge la chiave da .env, rispetta il tetto settimanale e aggiorna il registro della spesa.
  */
 import { ClaudeAdapter } from '../../../packages/adapters/src/index.js';
-import { Ledger } from './ledger.js';
+import { Budget } from './budget.js';
+import { Store } from './store.js';
 
 try {
   process.loadEnvFile('.env');
@@ -20,8 +21,11 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const ledger = new Ledger('data/ledger.json');
-const already = ledger.spent();
+const store = new Store('data/ai-bridge.db');
+const registry = new Budget(store.database, budget);
+registry.settleOrphans();
+registry.importLegacy('data/ledger.json');
+const already = registry.weeklySpentGbp();
 if (already >= budget) {
   console.error(`Tetto settimanale raggiunto (£${already.toFixed(2)} di £${budget.toFixed(2)}): nessuna chiamata.`);
   process.exit(1);
@@ -33,7 +37,8 @@ try {
     goal: 'Prova di collegamento.',
     history: [{ id: 1, from: 'user', to: ['claude'], text: 'Rispondi solo con: collegamento riuscito.', kind: 'message' }],
   });
-  const total = ledger.add(reply.costGbp ?? 0);
+  registry.record(reply.costGbp ?? 0, 'prova chiave Claude');
+  const total = registry.weeklySpentGbp();
   console.log(`Risposta di Claude: ${reply.text}`);
   console.log(`Costo di questa prova: £${(reply.costGbp ?? 0).toFixed(5)}`);
   console.log(`Spesa della settimana: £${total.toFixed(5)} di £${budget.toFixed(2)}`);

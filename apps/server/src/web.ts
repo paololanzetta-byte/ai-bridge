@@ -2,12 +2,12 @@
  * Avvia la pagina web di AI Bridge.
  * Uso: npm run web   (poi apri http://127.0.0.1:3000)
  * Prova senza chiavi e senza costi: npm run web:prova
- * Per aprirla dal telefono (Tailscale) avvia con HOST=0.0.0.0 — vedi docs/GUIDA-MAC.md.
+ * Dal telefono: Tailscale Serve (il server resta su 127.0.0.1) — vedi docs/GUIDA-MAC.md.
  */
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import { ChatGPTAdapter, ClaudeAdapter, ScriptedAdapter, DEMO_CHATGPT, DEMO_CLAUDE } from '../../../packages/adapters/src/index.js';
-import { createApp, UserError } from './app.js';
+import { createApp, isLoopbackHost, UserError } from './app.js';
 import { OpenAIAuth } from './openai-auth.js';
 
 try {
@@ -18,6 +18,10 @@ try {
 
 const demo = process.env['AIBRIDGE_DEMO'] === '1';
 const host = process.env['HOST'] ?? '127.0.0.1';
+if (!isLoopbackHost(host) && process.env['AIBRIDGE_ALLOW_LAN'] !== '1') {
+  console.error(`Rifiutato: HOST=${host} aprirebbe la pagina a tutta la rete. Per il telefono usa Tailscale Serve (vedi docs/GUIDA-MAC.md).`);
+  process.exit(1);
+}
 const port = Number(process.env['PORT'] ?? '3000');
 const budget = Number(process.env['WEEKLY_BUDGET_GBP'] ?? '5');
 const dataDir = resolve(demo ? 'data-prova' : 'data');
@@ -62,7 +66,6 @@ const app = createApp({
 const server = createServer(app.handler);
 server.listen(port, host, () => {
   console.log(`AI Bridge${demo ? ' (PROVA, risposte simulate)' : ''} attivo su http://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port}`);
-  if (host !== '127.0.0.1') console.log('Attenzione: raggiungibile da altri dispositivi della tua rete. Il PIN è obbligatorio.');
 });
 const stop = () => {
   server.close();

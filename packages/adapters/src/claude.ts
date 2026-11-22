@@ -1,4 +1,4 @@
-import type { Adapter, AdapterInput, AdapterReply, Message } from '../../orchestrator/src/index.js';
+import { notBilled, type Adapter, type AdapterInput, type AdapterReply, type Message } from '../../orchestrator/src/index.js';
 import { buildSystemPrompt, parseReply, toRoleMessages, type RoleMessage } from './protocol.js';
 
 const API_VERSION = '2023-06-01';
@@ -49,6 +49,16 @@ export class ClaudeAdapter implements Adapter {
     this.fetchImpl = config.fetchImpl ?? fetch;
   }
 
+  /**
+   * Costo MASSIMO possibile di un turno, da riservare prima della chiamata: ingresso stimato per eccesso
+   * (1 token ogni 2 caratteri, più del reale) più tutti i token di uscita consentiti.
+   */
+  estimateMaxCostGbp(input: AdapterInput): number {
+    const system = buildSystemPrompt('Claude', 'ChatGPT', input.goal);
+    const chars = system.length + toClaudeMessages(input.history).reduce((n, m) => n + m.content.length, 0);
+    return costGbp(this.model, Math.ceil(chars / 2) + 50, this.maxTokens, this.usdToGbp);
+  }
+
   async reply(input: AdapterInput): Promise<AdapterReply> {
     const body = {
       model: this.model,
@@ -64,8 +74,9 @@ export class ClaudeAdapter implements Adapter {
         'anthropic-version': API_VERSION,
       },
       body: JSON.stringify(body),
+      ...(input.signal ? { signal: input.signal } : {}),
     });
-    if (!res.ok) throw new Error(`Errore dal servizio Claude (HTTP ${res.status})`);
+    if (!res.ok) throw notBilled(new Error(`Errore dal servizio Claude (HTTP ${res.status})`));
     const data = (await res.json()) as {
       content?: { type: string; text?: string }[];
       usage?: { input_tokens?: number; output_tokens?: number };

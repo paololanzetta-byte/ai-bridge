@@ -43,8 +43,11 @@ Ogni conversazione di `npm run chat` viene salvata in `data/ai-bridge.db` (un fi
 2. Uso vero: `npm run web` (servono il file `.env` con la chiave Claude e l'accesso ChatGPT già fatto).
 3. Al primo avvio scegli un PIN di 4 cifre. Dopo 5 errori la pagina si blocca per 5, poi 15, poi 60 minuti.
 4. Dal profilo (in basso a sinistra, o "Profilo" sul telefono) cambi nome, PIN e le foto tue, di Claude e di ChatGPT. Le foto restano in `data/avatars`, mai su GitHub.
-5. Dal telefono con Tailscale: installa Tailscale su Mac e iPhone, poi avvia con `HOST=0.0.0.0 npm run web` e apri `http://<nome-del-mac>:3000` (o l'indirizzo 100.x.y.z che Tailscale mostra). Senza `HOST=0.0.0.0` la pagina resta visibile solo dal Mac.
+5. Dal telefono con Tailscale Serve: il server resta SEMPRE su 127.0.0.1 (visibile solo dal Mac). Installa Tailscale su Mac e iPhone con lo stesso account, attiva i certificati HTTPS dal pannello di amministrazione di Tailscale, poi nel Terminale `tailscale serve --bg 3000`. Tailscale mostra un indirizzo `https://<nome-del-mac>.<rete>.ts.net` raggiungibile solo dai tuoi dispositivi: aprilo da Safari sull'iPhone. Per spegnere: `tailscale serve off`. Il server rifiuta `HOST=0.0.0.0` (serve `AIBRIDGE_ALLOW_LAN=1`, sconsigliato).
 6. Il rapporto si scarica dal Riepilogo. Il salvataggio su Drive parte solo se lo chiedi, ogni volta.
 
 ## Avvio automatico
 Dentro la cartella del progetto: `sh scripts/avvio-automatico.sh` (prima ferma il server acceso a mano con Ctrl+C). Per toglierlo: `sh scripts/avvio-automatico.sh togli`. Il registro è in `~/Library/Logs/ai-bridge.log`. Dopo un aggiornamento del codice: `npm run build` e poi `launchctl kickstart -k gui/$(id -u)/com.aibridge.web`.
+
+## Spesa e budget
+Tutte le discussioni usano un unico registro nell'archivio (`data/ai-bridge.db`). Prima di ogni chiamata a Claude si riserva il costo massimo possibile; se supera il tetto settimanale la chiamata non parte. Gli avvisi al 50% e all'80% contano speso più prenotato. Il tetto è calcolato dall'app su prezzi noti: la fattura del fornitore resta separata, quindi controlla anche il suo pannello. STOP annulla la richiesta in corso; se il costo reale è ignoto si conta il massimo riservato.

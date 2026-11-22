@@ -3,14 +3,18 @@
 Chat room a tre partecipanti: un utente (supervisore), Claude e ChatGPT.
 Le due AI possono discutere in autonomia entro limiti prestabiliti; l'utente può intervenire in qualsiasi momento.
 
-**Stato (21-11-2026): Fase 2, prototipo con adattatori FINTI.** Il coordinatore (turni, limiti, ripetizioni, pausa e ripresa, richieste di decisione, tetto di spesa, rapporto finale) è scritto e provato con test automatici. Nessun servizio AI reale è ancora collegato: ChatGPT e Claude sono simulati con battute scritte a mano.
+**Stato (22-11-2026): versione funzionante in locale.** Pagina web con PIN, discussioni vere tra Claude (chiave API) e ChatGPT (piano personale), archivio SQLite, rapporto finale, foto profilo, avvisi di spesa. Gira solo sul computer dell'utente (127.0.0.1); dal telefono si usa Tailscale Serve. Il coordinatore ha tetto di spesa settimanale con prenotazione dei costi, STOP con cancellazione delle richieste, limiti di turni e rilevamento delle ripetizioni.
 
-## Provare il prototipo
+**Limiti noti (v0.2 in lavorazione):** contesto completo rinviato a ogni turno (nessun riassunto automatico), nessuna separazione dei messaggi privati tra le due AI, nessun nuovo tentativo automatico dopo un errore, nessuna ripresa delle discussioni dopo un riavvio.
+
+## Usare l'app
 ```
 npm install
-npm test        # 16 test automatici
-npm run demo    # crea dist/demo/index.html, la simulazione in una pagina sola
+npm run web:prova   # senza chiavi e senza costi, risposte simulate
+npm run web         # uso vero (serve .env con la chiave Claude e l'accesso ChatGPT)
+npm test            # test automatici
 ```
+Dettagli passo passo in [docs/GUIDA-MAC.md](docs/GUIDA-MAC.md).
 
 ## Documentazione
 - [Architettura](docs/ARCHITETTURA.md)
